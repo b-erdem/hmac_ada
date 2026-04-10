@@ -1,0 +1,59 @@
+# CI gate for proof-oriented crypto crate.
+# Runs build, tests, and GNATprove Level 2 on every push/PR.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-prove:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Alire
+        uses: alire-project/setup-alire@v3
+
+      - name: Build library
+        run: alr build
+
+      - name: Build tests
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            SDK_LIB="$(xcrun --show-sdk-path)/usr/lib"
+            alr exec -- gprbuild -P test_hmac.gpr -p -XSDK=macos -XSDK_LIB="$SDK_LIB"
+          else
+            alr exec -- gprbuild -P test_hmac.gpr -p
+          fi
+
+      - name: Run tests
+        run: ./obj/test_hmac
+
+      - name: Install gnatprove
+        run: alr with gnatprove
+
+      - name: Run SPARK proof (Level 2)
+        run: alr exec -- gnatprove -P hmac_ada.gpr -j0 --level=2 --timeout=120
+
+      - name: Verify proof results
+        shell: bash
+        run: |
+          # Parse the "Total" summary row. The last column is the
+          # Unproved count — "." means zero, a number means failures.
+          TOTAL_LINE=$(grep "^Total " obj/gnatprove/gnatprove.out)
+          echo "$TOTAL_LINE"
+          UNPROVED=$(echo "$TOTAL_LINE" | awk '{print $NF}')
+          if [ "$UNPROVED" != "." ] && [ "$UNPROVED" != "0" ]; then
+            echo "ERROR: Found unproved checks: $UNPROVED"
+            cat obj/gnatprove/gnatprove.out
+            exit 1
+          fi
+          echo "All SPARK checks proved."

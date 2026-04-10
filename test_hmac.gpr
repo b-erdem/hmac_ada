@@ -1,0 +1,39 @@
+with "hmac_ada";
+
+project Test_HMAC is
+
+   for Main use ("test_hmac.adb");
+   for Object_Dir use "obj";
+   for Source_Dirs use ("test");
+   for Languages use ("Ada");
+
+   package Compiler is
+      for Switches ("Ada") use
+        ("-g", "-O2", "-gnatwa", "-gnatW8", "-gnatyM120",
+         "-gnat2022");
+   end Compiler;
+
+   --  macOS (Xcode or CLT) needs the SDK lib path for -lSystem.
+   --  Usage:
+   --    macOS:  gprbuild ... -XSDK=macos \
+   --              -XSDK_LIB="$(xcrun --show-sdk-path)/usr/lib"
+   --    Linux:  gprbuild ...  (no flags needed)
+   --
+   --  xcrun works for both Xcode.app and CommandLineTools installs,
+   --  so this is no longer tied to a specific Xcode path.
+
+   type SDK_Type is ("macos", "none");
+   SDK : SDK_Type := External ("SDK", "none");
+
+   package Linker is
+      case SDK is
+         when "macos" =>
+            for Switches ("Ada") use
+              ("-L" & External ("SDK_LIB",
+                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"));
+         when "none" =>
+            for Switches ("Ada") use ();
+      end case;
+   end Linker;
+
+end Test_HMAC;

@@ -1,0 +1,14 @@
+name = "hmac_ada"
+description = "SPARK-proved HMAC (RFC 2104) implementation for Ada/SPARK"
+version = "0.1.0"
+
+authors = ["Baris Erdem"]
+maintainers = ["Baris Erdem <baris@erdem.dev>"]
+maintainers-logins = ["b-erdem"]
+licenses = "Apache-2.0"
+tags = ["hmac", "rfc2104", "cryptography", "spark", "embedded", "security"]
+
+# gnatprove is NOT a runtime dependency -- it is a dev/CI tool.
+# To run SPARK proofs:
+#   alr with gnatprove
+#   alr exec -- gnatprove -P hmac_ada.gpr -j0 --level=2 --timeout=120
