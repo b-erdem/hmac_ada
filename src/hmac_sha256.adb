@@ -2,12 +2,12 @@ package body HMAC_SHA256 is
 
    pragma SPARK_Mode;
 
-   IPad_Val : constant Ada.Streams.Stream_Element := 16#36#;
-   OPad_Val : constant Ada.Streams.Stream_Element := 16#5C#;
+   IPad_Val : constant System.Storage_Elements.Storage_Element := 16#36#;
+   OPad_Val : constant System.Storage_Elements.Storage_Element := 16#5C#;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : Ada.Streams.Stream_Element_Array) is
-      K0 : Ada.Streams.Stream_Element_Array
+                         Key  : System.Storage_Elements.Storage_Array) is
+      K0 : System.Storage_Elements.Storage_Array
         (1 .. SHA256.Block_Length) := [others => 0];
    begin
       if Key'Length > SHA256.Block_Length then
@@ -34,7 +34,7 @@ package body HMAC_SHA256 is
       end if;
 
       declare
-         IPad_Key : Ada.Streams.Stream_Element_Array
+         IPad_Key : System.Storage_Elements.Storage_Array
            (1 .. SHA256.Block_Length) := K0;
       begin
          for I in IPad_Key'Range loop
@@ -50,7 +50,7 @@ package body HMAC_SHA256 is
       end;
 
       declare
-         OPad_Key : Ada.Streams.Stream_Element_Array
+         OPad_Key : System.Storage_Elements.Storage_Array
            (1 .. SHA256.Block_Length) := K0;
       begin
          for I in OPad_Key'Range loop
@@ -74,7 +74,7 @@ package body HMAC_SHA256 is
    end Initialize;
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array) is
+                     Data : System.Storage_Elements.Storage_Array) is
    begin
       SHA256.Update (Ctx.Inner, Data);
    end Update;
@@ -94,8 +94,8 @@ package body HMAC_SHA256 is
       Ctx.Initialized := False;
    end Finalize;
 
-   procedure Compute (Key     : Ada.Streams.Stream_Element_Array;
-                      Message : Ada.Streams.Stream_Element_Array;
+   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
+                      Message : System.Storage_Elements.Storage_Array;
                       Digest  : out HMAC_Digest) is
       Ctx : Context;
    begin
@@ -111,7 +111,7 @@ package body HMAC_SHA256 is
    --  No_Inline prevents interprocedural optimization from converting the
    --  accumulation into an early-exit branch.
    function Equal (Left, Right : HMAC_Digest) return Boolean is
-      Diff : Ada.Streams.Stream_Element := 0;
+      Diff : System.Storage_Elements.Storage_Element := 0;
    begin
       for I in Left'Range loop
          pragma Loop_Invariant

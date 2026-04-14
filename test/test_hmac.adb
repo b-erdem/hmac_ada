@@ -1,4 +1,4 @@
-with Ada.Streams;
+with System.Storage_Elements;
 with Ada.Text_IO;
 with Ada.Command_Line;
 with SHA256;
@@ -6,28 +6,28 @@ with HMAC_SHA256;
 
 procedure Test_HMAC is
 
-   use type Ada.Streams.Stream_Element;
-   use type Ada.Streams.Stream_Element_Offset;
-   use type Ada.Streams.Stream_Element_Array;
+   use type System.Storage_Elements.Storage_Element;
+   use type System.Storage_Elements.Storage_Offset;
+   use type System.Storage_Elements.Storage_Array;
 
-   package SE renames Ada.Streams;
+   package SE renames System.Storage_Elements;
 
    Pass_Count : Natural := 0;
    Fail_Count : Natural := 0;
 
-   function Hex_Val (C : Character) return SE.Stream_Element is
+   function Hex_Val (C : Character) return SE.Storage_Element is
      (case C is
-         when '0' .. '9' => SE.Stream_Element
+         when '0' .. '9' => SE.Storage_Element
            (Character'Pos (C) - Character'Pos ('0')),
-         when 'a' .. 'f' => SE.Stream_Element
+         when 'a' .. 'f' => SE.Storage_Element
            (Character'Pos (C) - Character'Pos ('a') + 10),
-         when 'A' .. 'F' => SE.Stream_Element
+         when 'A' .. 'F' => SE.Storage_Element
            (Character'Pos (C) - Character'Pos ('A') + 10),
          when others => 0);
 
-   function H (Hex : String) return SE.Stream_Element_Array is
-      Len    : constant SE.Stream_Element_Offset := Hex'Length / 2;
-      Result : SE.Stream_Element_Array (1 .. Len);
+   function H (Hex : String) return SE.Storage_Array is
+      Len    : constant SE.Storage_Offset := Hex'Length / 2;
+      Result : SE.Storage_Array (1 .. Len);
    begin
       for I in 1 .. Len loop
          declare
@@ -43,12 +43,12 @@ procedure Test_HMAC is
 
    Hex_Chars : constant String := "0123456789abcdef";
 
-   function To_Hex (Data : SE.Stream_Element_Array) return String is
+   function To_Hex (Data : SE.Storage_Array) return String is
       Result : String (1 .. Integer (Data'Length) * 2);
    begin
       for I in Data'Range loop
          declare
-            V   : constant SE.Stream_Element := Data (I);
+            V   : constant SE.Storage_Element := Data (I);
             Pos : constant Integer :=
               Integer (I - Data'First) * 2 + 1;
          begin
@@ -60,8 +60,8 @@ procedure Test_HMAC is
    end To_Hex;
 
    procedure Check (Name     : String;
-                    Got      : SE.Stream_Element_Array;
-                    Expected : SE.Stream_Element_Array) is
+                    Got      : SE.Storage_Array;
+                    Expected : SE.Storage_Array) is
    begin
       if Got'Length = Expected'Length and then Got = Expected then
          Ada.Text_IO.Put_Line ("PASS: " & Name);
@@ -90,7 +90,7 @@ procedure Test_HMAC is
    end Check_Bool;
 
    procedure Test_SHA256 (Name     : String;
-                          Message  : SE.Stream_Element_Array;
+                          Message  : SE.Storage_Array;
                           Expected : String) is
       Ctx    : SHA256.Context;
       Digest : SHA256.Digest;
@@ -102,8 +102,8 @@ procedure Test_HMAC is
    end Test_SHA256;
 
    procedure Test_HMAC (Name     : String;
-                         Key      : SE.Stream_Element_Array;
-                         Message  : SE.Stream_Element_Array;
+                         Key      : SE.Storage_Array;
+                         Message  : SE.Storage_Array;
                          Expected : String) is
       Digest : HMAC_SHA256.HMAC_Digest;
    begin
@@ -113,12 +113,12 @@ procedure Test_HMAC is
 
    procedure Test_HMAC_Stream
      (Name     : String;
-      Key      : SE.Stream_Element_Array;
-      Chunks   : SE.Stream_Element_Array;
+      Key      : SE.Storage_Array;
+      Chunks   : SE.Storage_Array;
       Expected : String) is
       Ctx    : HMAC_SHA256.Context;
       Digest : HMAC_SHA256.HMAC_Digest;
-      Mid    : constant SE.Stream_Element_Offset :=
+      Mid    : constant SE.Storage_Offset :=
         Chunks'First + Chunks'Length / 2;
    begin
       HMAC_SHA256.Initialize (Ctx, Key);
@@ -189,7 +189,7 @@ begin
    Ada.Text_IO.Put_Line ("=== HMAC-SHA-256 RFC 4231 ===");
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#0b#];
+      Key : constant SE.Storage_Array := [1 .. 20 => 16#0b#];
    begin
       Test_HMAC ("TC1: key=0b*20, 'Hi There'",
         Key, H ("4869205468657265"),
@@ -198,7 +198,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := H ("4a656665");
+      Key : constant SE.Storage_Array := H ("4a656665");
    begin
       Test_HMAC ("TC2: key='Jefe'",
         Key, H ("7768617420646f2079612077616e7420"
@@ -208,7 +208,7 @@ begin
    end;
 
    declare
-       Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#aa#];
+       Key : constant SE.Storage_Array := [1 .. 20 => 16#aa#];
    begin
       Test_HMAC ("TC3: key=aa*20, data=dd*50",
         Key,
@@ -219,7 +219,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array :=
+      Key : constant SE.Storage_Array :=
         H ("0102030405060708090a0b0c0d0e0f10"
            & "111213141516171819");
    begin
@@ -232,7 +232,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#0c#];
+      Key : constant SE.Storage_Array := [1 .. 20 => 16#0c#];
    begin
       Test_HMAC ("TC5: key=0c*20, 'Test With Truncation'",
         Key, H ("546573742057697468205472756e6361"
@@ -242,7 +242,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 131 => 16#aa#];
+      Key : constant SE.Storage_Array := [1 .. 131 => 16#aa#];
    begin
       Test_HMAC ("TC6: key=aa*131 (key>block)",
         Key, H ("54657374205573696e67204c61726765"
@@ -254,7 +254,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 131 => 16#aa#];
+      Key : constant SE.Storage_Array := [1 .. 131 => 16#aa#];
    begin
       Test_HMAC ("TC7: key=aa*131, long data",
         Key, H ("54686973206973206120746573742075"
@@ -275,7 +275,7 @@ begin
    Ada.Text_IO.Put_Line ("=== Streaming HMAC Tests ===");
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#0b#];
+      Key : constant SE.Storage_Array := [1 .. 20 => 16#0b#];
    begin
       Test_HMAC_Stream ("Stream TC1: 2-chunk",
         Key, H ("4869205468657265"),
@@ -284,7 +284,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := H ("4a656665");
+      Key : constant SE.Storage_Array := H ("4a656665");
    begin
       Test_HMAC_Stream ("Stream TC2: 2-chunk",
         Key, H ("7768617420646f2079612077616e7420666f"
@@ -294,8 +294,8 @@ begin
    end;
 
    declare
-      Key  : constant SE.Stream_Element_Array := [1 .. 20 => 16#aa#];
-      Data : constant SE.Stream_Element_Array := [1 .. 50 => 16#dd#];
+      Key  : constant SE.Storage_Array := [1 .. 20 => 16#aa#];
+      Data : constant SE.Storage_Array := [1 .. 50 => 16#dd#];
    begin
       Test_HMAC_Stream ("Stream TC3: 2-chunk 50-byte",
         Key, Data,
@@ -304,7 +304,7 @@ begin
    end;
 
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 131 => 16#aa#];
+      Key : constant SE.Storage_Array := [1 .. 131 => 16#aa#];
    begin
       Test_HMAC_Stream ("Stream TC6: key>block",
         Key, H ("54657374205573696e67204c61726765"
@@ -321,7 +321,7 @@ begin
 
    --  Empty message
    declare
-      Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#0b#];
+      Key : constant SE.Storage_Array := [1 .. 20 => 16#0b#];
    begin
       Test_HMAC ("Edge: empty message",
         Key, H (""),
@@ -331,7 +331,7 @@ begin
 
    --  Empty key
    declare
-      Key : constant SE.Stream_Element_Array (1 .. 0) :=
+      Key : constant SE.Storage_Array (1 .. 0) :=
         [others => 0];
    begin
       Test_HMAC ("Edge: empty key",
@@ -342,10 +342,10 @@ begin
 
    --  64-byte key (exactly block size)
    declare
-      Key : SE.Stream_Element_Array (1 .. 64);
+      Key : SE.Storage_Array (1 .. 64);
    begin
       for I in Key'Range loop
-         Key (I) := SE.Stream_Element ((I - 1) mod 256);
+         Key (I) := SE.Storage_Element ((I - 1) mod 256);
       end loop;
       Test_HMAC ("Edge: 64-byte key (exact block)",
         Key, H ("53616d706c65206d657373616765"),
@@ -355,10 +355,10 @@ begin
 
    --  65-byte key (just over block size, triggers key hashing)
    declare
-      Key : SE.Stream_Element_Array (1 .. 65);
+      Key : SE.Storage_Array (1 .. 65);
    begin
       for I in Key'Range loop
-         Key (I) := SE.Stream_Element ((I - 1) mod 256);
+         Key (I) := SE.Storage_Element ((I - 1) mod 256);
       end loop;
       Test_HMAC ("Edge: 65-byte key (over block, hashed)",
         Key, H ("53616d706c65206d657373616765"),
@@ -373,8 +373,8 @@ begin
    declare
       D1 : HMAC_SHA256.HMAC_Digest;
       D2 : HMAC_SHA256.HMAC_Digest;
-      Key : constant SE.Stream_Element_Array := [1 .. 20 => 16#0b#];
-      Msg : constant SE.Stream_Element_Array := H ("4869205468657265");
+      Key : constant SE.Storage_Array := [1 .. 20 => 16#0b#];
+      Msg : constant SE.Storage_Array := H ("4869205468657265");
    begin
       HMAC_SHA256.Compute (Key, Msg, D1);
       HMAC_SHA256.Compute (Key, Msg, D2);

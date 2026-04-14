@@ -50,13 +50,13 @@ package body SHA256 is
    function Lower_Sigma1 (X : Word) return Word is
      (ROTR (X, 17) xor ROTR (X, 19) xor SHR (X, 10));
 
-   function To_U8 (B : Ada.Streams.Stream_Element)
+   function To_U8 (B : System.Storage_Elements.Storage_Element)
      return Interfaces.Unsigned_8 is
      (Interfaces.Unsigned_8 (B));
 
    function To_SE (B : Interfaces.Unsigned_8)
-     return Ada.Streams.Stream_Element is
-     (Ada.Streams.Stream_Element (B));
+     return System.Storage_Elements.Storage_Element is
+     (System.Storage_Elements.Storage_Element (B));
 
    function Get_Word (B : Byte_Block; I : Natural) return Word is
      (Word (B (I * 4)) * 16#0100_0000# +
@@ -142,7 +142,7 @@ package body SHA256 is
    end Initialize;
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array) is
+                     Data : System.Storage_Elements.Storage_Array) is
       BL : Natural;
    begin
       BL := Ctx.Buf_Len;
@@ -218,19 +218,19 @@ package body SHA256 is
 
       Output := [others => 0];
       for I in 0 .. 7 loop
-         Output (Ada.Streams.Stream_Element_Offset (4 * I + 1)) :=
+         Output (System.Storage_Elements.Storage_Offset (4 * I + 1)) :=
            To_SE (Interfaces.Unsigned_8
              (Interfaces.Shift_Right (Ctx.State (I), 24)
               and 16#FF#));
-         Output (Ada.Streams.Stream_Element_Offset (4 * I + 2)) :=
+         Output (System.Storage_Elements.Storage_Offset (4 * I + 2)) :=
            To_SE (Interfaces.Unsigned_8
              (Interfaces.Shift_Right (Ctx.State (I), 16)
               and 16#FF#));
-         Output (Ada.Streams.Stream_Element_Offset (4 * I + 3)) :=
+         Output (System.Storage_Elements.Storage_Offset (4 * I + 3)) :=
            To_SE (Interfaces.Unsigned_8
              (Interfaces.Shift_Right (Ctx.State (I), 8)
               and 16#FF#));
-         Output (Ada.Streams.Stream_Element_Offset (4 * I + 4)) :=
+         Output (System.Storage_Elements.Storage_Offset (4 * I + 4)) :=
            To_SE (Interfaces.Unsigned_8
              (Ctx.State (I) and 16#FF#));
       end loop;

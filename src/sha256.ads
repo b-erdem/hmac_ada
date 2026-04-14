@@ -1,4 +1,4 @@
-with Ada.Streams;
+with System.Storage_Elements;
 with Interfaces;
 
 package SHA256 is
@@ -7,19 +7,19 @@ package SHA256 is
    pragma SPARK_Mode;
    pragma Unevaluated_Use_Of_Old (Allow);
 
-   use type Ada.Streams.Stream_Element_Offset;
+   use type System.Storage_Elements.Storage_Offset;
    use type Interfaces.Unsigned_64;
 
-   Digest_Length : constant Ada.Streams.Stream_Element_Offset := 32;
-   Block_Length  : constant Ada.Streams.Stream_Element_Offset := 64;
+   Digest_Length : constant System.Storage_Elements.Storage_Offset := 32;
+   Block_Length  : constant System.Storage_Elements.Storage_Offset := 64;
 
-   Max_Data_Length : constant Ada.Streams.Stream_Element_Offset :=
-     Ada.Streams.Stream_Element_Offset'Last / 2;
+   Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
+     System.Storage_Elements.Storage_Offset'Last / 2;
 
    Max_Message_Bytes : constant Interfaces.Unsigned_64 :=
      Interfaces.Unsigned_64 (2**61 - 1);
 
-   subtype Digest is Ada.Streams.Stream_Element_Array (1 .. Digest_Length);
+   subtype Digest is System.Storage_Elements.Storage_Array (1 .. Digest_Length);
 
    type Context is private;
 
@@ -35,7 +35,7 @@ package SHA256 is
                  and then Message_Byte_Count (Ctx) = 0;
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array)
+                     Data : System.Storage_Elements.Storage_Array)
      with Pre  => Is_Initialized (Ctx)
                  and then Data'First >= 0
                  and then Data'Last <= Max_Data_Length

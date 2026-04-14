@@ -1,4 +1,4 @@
-with Ada.Streams;
+with System.Storage_Elements;
 
 --  Generic HMAC (RFC 2104) for any hash function.
 --
@@ -10,48 +10,48 @@ with Ada.Streams;
 --  that directly calls the hash operations with full contracts.
 
 generic
-   Block_Size  : Ada.Streams.Stream_Element_Offset;
-   Digest_Size : Ada.Streams.Stream_Element_Offset;
+   Block_Size  : System.Storage_Elements.Storage_Offset;
+   Digest_Size : System.Storage_Elements.Storage_Offset;
 
    type Hash_Context is private;
 
    with procedure Hash_Init (Ctx : out Hash_Context);
    with procedure Hash_Update (Ctx  : in out Hash_Context;
-                               Data : Ada.Streams.Stream_Element_Array);
+                               Data : System.Storage_Elements.Storage_Array);
    with procedure Hash_Final (Ctx    : in out Hash_Context;
-                              Digest : out Ada.Streams.Stream_Element_Array);
+                              Digest : out System.Storage_Elements.Storage_Array);
 
 package HMAC is
 
    pragma Pure;
    pragma SPARK_Mode (Off);
 
-   use type Ada.Streams.Stream_Element;
-   use type Ada.Streams.Stream_Element_Array;
-   use type Ada.Streams.Stream_Element_Offset;
+   use type System.Storage_Elements.Storage_Element;
+   use type System.Storage_Elements.Storage_Array;
+   use type System.Storage_Elements.Storage_Offset;
 
    pragma Compile_Time_Error
      (Digest_Size > Block_Size,
       "Digest_Size must not exceed Block_Size");
 
-   Max_Data_Length : constant Ada.Streams.Stream_Element_Offset :=
-     Ada.Streams.Stream_Element_Offset'Last / 2;
+   Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
+     System.Storage_Elements.Storage_Offset'Last / 2;
 
    subtype HMAC_Digest is
-     Ada.Streams.Stream_Element_Array (1 .. Digest_Size);
+     System.Storage_Elements.Storage_Array (1 .. Digest_Size);
 
    type Context is private;
 
    function Is_Initialized (Ctx : Context) return Boolean;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : Ada.Streams.Stream_Element_Array)
+                         Key  : System.Storage_Elements.Storage_Array)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length,
           Post => Is_Initialized (Ctx);
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array)
+                     Data : System.Storage_Elements.Storage_Array)
      with Pre => Is_Initialized (Ctx)
                 and then Data'First >= 0
                 and then Data'Last <= Max_Data_Length;
@@ -61,8 +61,8 @@ package HMAC is
      with Pre  => Is_Initialized (Ctx),
           Post => not Is_Initialized (Ctx);
 
-   procedure Compute (Key     : Ada.Streams.Stream_Element_Array;
-                      Message : Ada.Streams.Stream_Element_Array;
+   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
+                      Message : System.Storage_Elements.Storage_Array;
                       Digest  : out HMAC_Digest)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length

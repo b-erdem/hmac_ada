@@ -1,4 +1,4 @@
-with Ada.Streams;
+with System.Storage_Elements;
 with Interfaces;
 with SHA256;
 
@@ -8,12 +8,12 @@ package HMAC_SHA256 is
    pragma SPARK_Mode;
    pragma Unevaluated_Use_Of_Old (Allow);
 
-   use type Ada.Streams.Stream_Element;
-   use type Ada.Streams.Stream_Element_Array;
-   use type Ada.Streams.Stream_Element_Offset;
+   use type System.Storage_Elements.Storage_Element;
+   use type System.Storage_Elements.Storage_Array;
+   use type System.Storage_Elements.Storage_Offset;
    use type Interfaces.Unsigned_64;
 
-   Max_Data_Length : constant Ada.Streams.Stream_Element_Offset :=
+   Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
      SHA256.Max_Data_Length;
 
    subtype HMAC_Digest is SHA256.Digest;
@@ -36,7 +36,7 @@ package HMAC_SHA256 is
      with Ghost;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : Ada.Streams.Stream_Element_Array)
+                         Key  : System.Storage_Elements.Storage_Array)
      with Pre  => Key'First >= 0
                  and then Key'Last <= Max_Data_Length
                  and then Interfaces.Unsigned_64 (Key'Length) <=
@@ -50,7 +50,7 @@ package HMAC_SHA256 is
                    Interfaces.Unsigned_64 (SHA256.Block_Length);
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array)
+                     Data : System.Storage_Elements.Storage_Array)
      with Pre  => Is_Initialized (Ctx)
                  and then Inner_Is_Initialized (Ctx)
                  and then Outer_Is_Initialized (Ctx)
@@ -84,8 +84,8 @@ package HMAC_SHA256 is
           Post => not Is_Initialized (Ctx),
           Depends => (Digest => Ctx, Ctx => Ctx);
 
-   procedure Compute (Key     : Ada.Streams.Stream_Element_Array;
-                      Message : Ada.Streams.Stream_Element_Array;
+   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
+                      Message : System.Storage_Elements.Storage_Array;
                       Digest  : out HMAC_Digest)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length

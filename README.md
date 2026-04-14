@@ -32,12 +32,12 @@ hmac_ada = "^0.1.0"
 ### One-shot HMAC
 
 ```ada
-with Ada.Streams;
+with System.Storage_Elements;
 with HMAC_SHA256;
 
 procedure Example is
-   Key : constant Ada.Streams.Stream_Element_Array := (1 .. 32 => 16#42#);
-   Msg : constant Ada.Streams.Stream_Element_Array := (1 .. 11 => 16#48#);
+   Key : constant System.Storage_Elements.Storage_Array := (1 .. 32 => 16#42#);
+   Msg : constant System.Storage_Elements.Storage_Array := (1 .. 11 => 16#48#);
    Tag : HMAC_SHA256.HMAC_Digest;
 begin
    HMAC_SHA256.Compute (Key, Msg, Tag);
@@ -47,13 +47,13 @@ end Example;
 ### Streaming HMAC
 
 ```ada
-with Ada.Streams;
+with System.Storage_Elements;
 with HMAC_SHA256;
 
 procedure Example_Stream is
-   Key    : constant Ada.Streams.Stream_Element_Array := (1 .. 32 => 16#42#);
-   Chunk1 : constant Ada.Streams.Stream_Element_Array := (1 .. 64 => 16#41#);
-   Chunk2 : constant Ada.Streams.Stream_Element_Array := (1 .. 64 => 16#42#);
+   Key    : constant System.Storage_Elements.Storage_Array := (1 .. 32 => 16#42#);
+   Chunk1 : constant System.Storage_Elements.Storage_Array := (1 .. 64 => 16#41#);
+   Chunk2 : constant System.Storage_Elements.Storage_Array := (1 .. 64 => 16#42#);
    Ctx    : HMAC_SHA256.Context;
    Tag    : HMAC_SHA256.HMAC_Digest;
 begin

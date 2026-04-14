@@ -2,18 +2,18 @@ package body HMAC is
 
    pragma SPARK_Mode (Off);
 
-   IPad_Val : constant Ada.Streams.Stream_Element := 16#36#;
-   OPad_Val : constant Ada.Streams.Stream_Element := 16#5C#;
+   IPad_Val : constant System.Storage_Elements.Storage_Element := 16#36#;
+   OPad_Val : constant System.Storage_Elements.Storage_Element := 16#5C#;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : Ada.Streams.Stream_Element_Array) is
-      K0 : Ada.Streams.Stream_Element_Array (1 .. Block_Size) :=
+                         Key  : System.Storage_Elements.Storage_Array) is
+      K0 : System.Storage_Elements.Storage_Array (1 .. Block_Size) :=
         [others => 0];
    begin
       if Key'Length > Block_Size then
          declare
             Key_Ctx  : Hash_Context;
-            Key_Hash : Ada.Streams.Stream_Element_Array (1 .. Digest_Size);
+            Key_Hash : System.Storage_Elements.Storage_Array (1 .. Digest_Size);
          begin
             Hash_Init (Key_Ctx);
             Hash_Update (Key_Ctx, Key);
@@ -29,7 +29,7 @@ package body HMAC is
       end if;
 
       declare
-         IPad_Key : Ada.Streams.Stream_Element_Array (1 .. Block_Size) := K0;
+         IPad_Key : System.Storage_Elements.Storage_Array (1 .. Block_Size) := K0;
       begin
          for I in IPad_Key'Range loop
             IPad_Key (I) := IPad_Key (I) xor IPad_Val;
@@ -41,7 +41,7 @@ package body HMAC is
       end;
 
       declare
-         OPad_Key : Ada.Streams.Stream_Element_Array (1 .. Block_Size) := K0;
+         OPad_Key : System.Storage_Elements.Storage_Array (1 .. Block_Size) := K0;
       begin
          for I in OPad_Key'Range loop
             OPad_Key (I) := OPad_Key (I) xor OPad_Val;
@@ -58,14 +58,14 @@ package body HMAC is
    end Initialize;
 
    procedure Update (Ctx  : in out Context;
-                     Data : Ada.Streams.Stream_Element_Array) is
+                     Data : System.Storage_Elements.Storage_Array) is
    begin
       Hash_Update (Ctx.Inner, Data);
    end Update;
 
    procedure Finalize (Ctx    : in out Context;
                        Digest : out HMAC_Digest) is
-      Inner_Digest : Ada.Streams.Stream_Element_Array (1 .. Digest_Size);
+      Inner_Digest : System.Storage_Elements.Storage_Array (1 .. Digest_Size);
    begin
       Hash_Final (Ctx.Inner, Inner_Digest);
       Hash_Update (Ctx.Outer, Inner_Digest);
@@ -75,8 +75,8 @@ package body HMAC is
       Ctx.Initialized := False;
    end Finalize;
 
-   procedure Compute (Key     : Ada.Streams.Stream_Element_Array;
-                      Message : Ada.Streams.Stream_Element_Array;
+   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
+                      Message : System.Storage_Elements.Storage_Array;
                       Digest  : out HMAC_Digest) is
       Ctx : Context;
    begin
@@ -90,7 +90,7 @@ package body HMAC is
    --  No_Inline prevents interprocedural optimization from converting the
    --  accumulation into an early-exit branch.
    function Equal (Left, Right : HMAC_Digest) return Boolean is
-      Diff : Ada.Streams.Stream_Element := 0;
+      Diff : System.Storage_Elements.Storage_Element := 0;
    begin
       for I in Left'Range loop
          Diff := Diff or (Left (I) xor Right (I));
