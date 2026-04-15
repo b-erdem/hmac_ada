@@ -13,6 +13,11 @@ package HMAC_SHA256 is
    use type System.Storage_Elements.Storage_Offset;
    use type Interfaces.Unsigned_64;
 
+   --  Library-level alias so users don't need to "with System.Storage_Elements"
+   --  directly. Byte_Array is semantically identical to
+   --  System.Storage_Elements.Storage_Array.
+   subtype Byte_Array is System.Storage_Elements.Storage_Array;
+
    Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
      SHA256.Max_Data_Length;
 
@@ -36,7 +41,7 @@ package HMAC_SHA256 is
      with Ghost;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : System.Storage_Elements.Storage_Array)
+                         Key  : Byte_Array)
      with Pre  => Key'First >= 0
                  and then Key'Last <= Max_Data_Length
                  and then Interfaces.Unsigned_64 (Key'Length) <=
@@ -50,7 +55,7 @@ package HMAC_SHA256 is
                    Interfaces.Unsigned_64 (SHA256.Block_Length);
 
    procedure Update (Ctx  : in out Context;
-                     Data : System.Storage_Elements.Storage_Array)
+                     Data : Byte_Array)
      with Pre  => Is_Initialized (Ctx)
                  and then Inner_Is_Initialized (Ctx)
                  and then Outer_Is_Initialized (Ctx)
@@ -84,8 +89,8 @@ package HMAC_SHA256 is
           Post => not Is_Initialized (Ctx),
           Depends => (Digest => Ctx, Ctx => Ctx);
 
-   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
-                      Message : System.Storage_Elements.Storage_Array;
+   procedure Compute (Key     : Byte_Array;
+                      Message : Byte_Array;
                       Digest  : out HMAC_Digest)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length

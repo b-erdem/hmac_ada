@@ -6,14 +6,13 @@ package body HMAC is
    OPad_Val : constant System.Storage_Elements.Storage_Element := 16#5C#;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : System.Storage_Elements.Storage_Array) is
-      K0 : System.Storage_Elements.Storage_Array (1 .. Block_Size) :=
-        [others => 0];
+                         Key  : Byte_Array) is
+      K0 : Byte_Array (1 .. Block_Size) := [others => 0];
    begin
       if Key'Length > Block_Size then
          declare
             Key_Ctx  : Hash_Context;
-            Key_Hash : System.Storage_Elements.Storage_Array (1 .. Digest_Size);
+            Key_Hash : Byte_Array (1 .. Digest_Size);
          begin
             Hash_Init (Key_Ctx);
             Hash_Update (Key_Ctx, Key);
@@ -29,7 +28,7 @@ package body HMAC is
       end if;
 
       declare
-         IPad_Key : System.Storage_Elements.Storage_Array (1 .. Block_Size) := K0;
+         IPad_Key : Byte_Array (1 .. Block_Size) := K0;
       begin
          for I in IPad_Key'Range loop
             IPad_Key (I) := IPad_Key (I) xor IPad_Val;
@@ -41,7 +40,7 @@ package body HMAC is
       end;
 
       declare
-         OPad_Key : System.Storage_Elements.Storage_Array (1 .. Block_Size) := K0;
+         OPad_Key : Byte_Array (1 .. Block_Size) := K0;
       begin
          for I in OPad_Key'Range loop
             OPad_Key (I) := OPad_Key (I) xor OPad_Val;
@@ -58,14 +57,14 @@ package body HMAC is
    end Initialize;
 
    procedure Update (Ctx  : in out Context;
-                     Data : System.Storage_Elements.Storage_Array) is
+                     Data : Byte_Array) is
    begin
       Hash_Update (Ctx.Inner, Data);
    end Update;
 
    procedure Finalize (Ctx    : in out Context;
                        Digest : out HMAC_Digest) is
-      Inner_Digest : System.Storage_Elements.Storage_Array (1 .. Digest_Size);
+      Inner_Digest : Byte_Array (1 .. Digest_Size);
    begin
       Hash_Final (Ctx.Inner, Inner_Digest);
       Hash_Update (Ctx.Outer, Inner_Digest);
@@ -75,8 +74,8 @@ package body HMAC is
       Ctx.Initialized := False;
    end Finalize;
 
-   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
-                      Message : System.Storage_Elements.Storage_Array;
+   procedure Compute (Key     : Byte_Array;
+                      Message : Byte_Array;
                       Digest  : out HMAC_Digest) is
       Ctx : Context;
    begin

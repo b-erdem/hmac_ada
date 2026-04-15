@@ -34,24 +34,28 @@ package HMAC is
      (Digest_Size > Block_Size,
       "Digest_Size must not exceed Block_Size");
 
+   --  Library-level alias so users don't need to "with System.Storage_Elements"
+   --  directly. Byte_Array is semantically identical to
+   --  System.Storage_Elements.Storage_Array.
+   subtype Byte_Array is System.Storage_Elements.Storage_Array;
+
    Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
      System.Storage_Elements.Storage_Offset'Last / 2;
 
-   subtype HMAC_Digest is
-     System.Storage_Elements.Storage_Array (1 .. Digest_Size);
+   subtype HMAC_Digest is Byte_Array (1 .. Digest_Size);
 
    type Context is private;
 
    function Is_Initialized (Ctx : Context) return Boolean;
 
    procedure Initialize (Ctx : out Context;
-                         Key  : System.Storage_Elements.Storage_Array)
+                         Key  : Byte_Array)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length,
           Post => Is_Initialized (Ctx);
 
    procedure Update (Ctx  : in out Context;
-                     Data : System.Storage_Elements.Storage_Array)
+                     Data : Byte_Array)
      with Pre => Is_Initialized (Ctx)
                 and then Data'First >= 0
                 and then Data'Last <= Max_Data_Length;
@@ -61,8 +65,8 @@ package HMAC is
      with Pre  => Is_Initialized (Ctx),
           Post => not Is_Initialized (Ctx);
 
-   procedure Compute (Key     : System.Storage_Elements.Storage_Array;
-                      Message : System.Storage_Elements.Storage_Array;
+   procedure Compute (Key     : Byte_Array;
+                      Message : Byte_Array;
                       Digest  : out HMAC_Digest)
      with Pre => Key'First >= 0
                 and then Key'Last <= Max_Data_Length
