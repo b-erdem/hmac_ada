@@ -108,7 +108,7 @@ procedure Test_HMAC is
       Digest : HMAC_SHA256.HMAC_Digest;
    begin
       HMAC_SHA256.Compute (Key, Message, Digest);
-      Check (Name, Digest, H (Expected));
+      Check (Name, SE.Storage_Array (Digest), H (Expected));
    end Test_HMAC;
 
    procedure Test_HMAC_Stream
@@ -129,7 +129,7 @@ procedure Test_HMAC is
          HMAC_SHA256.Update (Ctx, Chunks (Mid .. Chunks'Last));
       end if;
       HMAC_SHA256.Finalize (Ctx, Digest);
-      Check (Name, Digest, H (Expected));
+      Check (Name, SE.Storage_Array (Digest), H (Expected));
    end Test_HMAC_Stream;
 
 begin

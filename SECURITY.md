@@ -6,8 +6,8 @@ Only the latest released minor version receives security fixes.
 
 | Version | Supported |
 | ------- | --------- |
-| 0.1.x   | yes       |
-| < 0.1   | no        |
+| 0.2.x   | yes       |
+| < 0.2   | no        |
 
 ## Reporting a Vulnerability
 
@@ -38,14 +38,16 @@ proofs. The crate is intended for use in safety-critical and
 security-sensitive systems. The current security posture is:
 
 - **Functional correctness**: HMAC-SHA-256 and SHA-256 are proved
-  clean at SPARK Level 2 (174 verification conditions, zero
+  clean at SPARK Level 2 (175 verification conditions, zero
   `pragma Assume`, zero justified checks). Runtime safety (no
   buffer overflows, integer overflow, uninitialised reads, or
   array-index violations) follows from the proofs.
-- **Constant-time tag comparison**: `HMAC_SHA256.Equal` compares
-  digests via XOR accumulation with `pragma No_Inline`. This gives
-  practical constant-time behaviour under GNAT/GCC but is not a
-  formally verified constant-time guarantee (which would require
+- **Constant-time tag comparison**: `HMAC_Digest` overrides `"="`
+  with an XOR-accumulation comparison carrying `pragma No_Inline`,
+  so the default `=` operator is constant-time. `HMAC_SHA256.Equal`
+  is preserved as an explicit alias. This gives practical
+  constant-time behaviour under GNAT/GCC but is not a formally
+  verified constant-time guarantee (which would require
   target-specific analysis of the emitted machine code).
 - **Key and state scrubbing**: Sensitive locals (`IPad_Key`,
   `OPad_Key`, `K0`, SHA-256 working state) are zeroed with
@@ -58,7 +60,7 @@ security-sensitive systems. The current security posture is:
 
 ## Known Issues / Limitations
 
-None known at v0.1.0. This section will be updated as issues are
+None known at v0.2.0. This section will be updated as issues are
 reported.
 
 ## Hardening Recommendations

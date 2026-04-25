@@ -2,13 +2,15 @@
 
 SPARK-proved HMAC (RFC 2104) implementation in Ada/SPARK with a standalone SHA-256 (FIPS 180-4).
 
-**174/174 SPARK checks proved, 0 assumptions, 0 warnings, Level 2.**
+**175/175 SPARK checks proved, 0 assumptions, 0 warnings, Level 2.**
 
 ## Features
 
 - HMAC-SHA-256 per RFC 2104 / RFC 4231
 - 100% SPARK proved at Level 2 -- zero `pragma Assume`
-- Constant-time digest comparison (`Equal`) to prevent timing side-channels
+- Constant-time digest comparison by default: `=` on `HMAC_Digest` is the
+  constant-time operator, so `Computed = Expected` is safe against timing
+  attacks. `Equal` is preserved as an explicit alias.
 - Secure wipe of key material and intermediate state
 - No heap allocation -- `pragma Pure`, all stack-bounded
 - Streaming (Init/Update/Finalize) and one-shot (`Compute`) APIs
@@ -24,7 +26,7 @@ Or add to your `alire.toml`:
 
 ```toml
 [[depends-on]]
-hmac_ada = "^0.1.0"
+hmac_ada = "^0.2.0"
 ```
 
 ## Usage
@@ -65,41 +67,43 @@ end Example_Stream;
 ### Verifying an HMAC (constant-time)
 
 ```ada
-if HMAC_SHA256.Equal (Computed_Tag, Expected_Tag) then
-   --  Valid
+if Computed_Tag = Expected_Tag then
+   --  Valid -- comparison is constant-time
 end if;
 ```
 
-Always use `Equal` instead of `=` when comparing HMACs against expected values to prevent timing attacks.
+`HMAC_Digest` overrides `"="` with a constant-time XOR-accumulation comparison, so the default operator is already safe against timing attacks. `HMAC_SHA256.Equal` is kept as an explicit alias for code that prefers a named function.
 
 ## SPARK Proof
 
-The concrete `HMAC_SHA256` and `SHA256` packages are fully SPARK-proved. To verify:
-
-```bash
-alr with gnatprove
-alr exec -- gnatprove -P hmac_ada.gpr -j0 --level=2 --timeout=120
-```
+The concrete `HMAC_SHA256` and `SHA256` packages are fully SPARK-proved.
 
 The generic `HMAC` package is `SPARK_Mode (Off)` because generic formal subprograms have no contracts and cannot be analyzed by gnatprove. For SPARK proof with other hash functions, write a concrete package following the `HMAC_SHA256` pattern.
 
-## Building and Testing
+## Building, Testing, and Proving
+
+The published crate has no dev-only dependencies. Tests and `gnatprove` live in the nested `tests/` crate, which depends on the top-level crate via a local `path` pin (see [Alire docs](https://github.com/alire-project/alire/blob/master/doc/catalog-format-spec.md#using-pins-for-crate-testing)).
 
 ```bash
-# Build library
+# Build the library
 alr build
 
-# Build and run tests (macOS -- derive SDK path automatically)
-alr exec -- gprbuild -P test_hmac.gpr -p \
-  -XSDK=macos -XSDK_LIB="$(xcrun --show-sdk-path)/usr/lib"
+# Build and run tests (Linux)
+cd tests
+alr build
 ./obj/test_hmac
 
-# Build and run tests (Linux / other)
-alr exec -- gprbuild -P test_hmac.gpr -p
+# Build and run tests (macOS -- needs SDK path for -lSystem)
+cd tests
+alr build -- -XSDK=macos -XSDK_LIB="$(xcrun --show-sdk-path)/usr/lib"
 ./obj/test_hmac
+
+# Run SPARK proof at Level 2
+cd tests
+alr exec -- gnatprove -P ../hmac_ada.gpr -j0 --level=2 --timeout=120
 ```
 
-26 tests cover SHA-256 (FIPS 180-4), HMAC-SHA-256 (all 7 RFC 4231 test vectors), streaming, edge cases, and constant-time `Equal`.
+26 tests cover SHA-256 (FIPS 180-4), HMAC-SHA-256 (all 7 RFC 4231 test vectors), streaming, edge cases, and the constant-time `=` operator.
 
 ## Security Considerations
 
