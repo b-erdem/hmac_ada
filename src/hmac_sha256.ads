@@ -9,7 +9,6 @@ package HMAC_SHA256 is
    pragma Unevaluated_Use_Of_Old (Allow);
 
    use type System.Storage_Elements.Storage_Element;
-   use type System.Storage_Elements.Storage_Array;
    use type System.Storage_Elements.Storage_Offset;
    use type Interfaces.Unsigned_64;
 
@@ -21,7 +20,13 @@ package HMAC_SHA256 is
    Max_Data_Length : constant System.Storage_Elements.Storage_Offset :=
      SHA256.Max_Data_Length;
 
-   subtype HMAC_Digest is SHA256.Digest;
+   --  HMAC_Digest is a distinct type (not a subtype of Storage_Array) so we
+   --  can override "=" with a constant-time implementation. This makes the
+   --  default `Computed = Expected` comparison safe against timing attacks
+   --  without users having to remember a special function. Convert with
+   --  `System.Storage_Elements.Storage_Array (D)` if you need raw byte access.
+   type HMAC_Digest is
+     new System.Storage_Elements.Storage_Array (1 .. SHA256.Digest_Length);
 
    type Context is private;
 
@@ -103,10 +108,15 @@ package HMAC_SHA256 is
                     - Interfaces.Unsigned_64 (SHA256.Block_Length);
 
    --  Constant-time digest comparison to prevent timing side-channels.
-   --  Use this instead of "=" when comparing an expected HMAC against a
-   --  computed one.
+   --  This overrides the predefined array equality, so a plain
+   --  `Computed = Expected` is also constant-time. `Equal` is preserved as
+   --  a rename for callers who prefer the explicit name.
+   function "=" (Left, Right : HMAC_Digest) return Boolean
+     with Post => "="'Result =
+                    (for all I in Left'Range => Left (I) = Right (I));
+
    function Equal (Left, Right : HMAC_Digest) return Boolean
-     with Post => Equal'Result = (Left = Right);
+     renames "=";
 
 private
 

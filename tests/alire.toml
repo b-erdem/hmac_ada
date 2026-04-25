@@ -1,0 +1,17 @@
+name = "hmac_ada_tests"
+description = "Internal test + proof crate for hmac_ada (not published)"
+version = "0.0.0"
+
+authors = ["Baris Erdem"]
+maintainers = ["Baris Erdem <baris@erdem.dev>"]
+maintainers-logins = ["b-erdem"]
+licenses = "Apache-2.0"
+
+project-files = ["test_hmac.gpr"]
+
+[[depends-on]]
+hmac_ada = "*"
+gnatprove = "^15.1.0"
+
+[[pins]]
+hmac_ada = { path = ".." }

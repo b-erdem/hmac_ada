@@ -1,5 +1,9 @@
 # CI gate for proof-oriented crypto crate.
 # Runs build, tests, and GNATprove Level 2 on every push/PR.
+#
+# Tests and SPARK proof live in the nested `tests/` crate, which depends
+# on the top-level crate via a local `path` pin. This keeps the published
+# crate free of dev-only dependencies (gnatprove).
 name: CI
 
 on:
@@ -20,34 +24,37 @@ jobs:
 
       - name: Install Alire
         uses: alire-project/setup-alire@v3
+        with:
+          version: 2.1.0
+          toolchain: gnat_native=15.2.1 gprbuild=25.0.1
 
-      - name: Build library
+      - name: Build library (top-level crate)
         run: alr build
 
-      - name: Build tests
+      - name: Build tests (nested crate)
         shell: bash
+        working-directory: tests
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
             SDK_LIB="$(xcrun --show-sdk-path)/usr/lib"
-            alr exec -- gprbuild -P test_hmac.gpr -p -XSDK=macos -XSDK_LIB="$SDK_LIB"
+            alr build -- -XSDK=macos -XSDK_LIB="$SDK_LIB"
           else
-            alr exec -- gprbuild -P test_hmac.gpr -p
+            alr build
           fi
 
       - name: Run tests
+        working-directory: tests
         run: ./obj/test_hmac
 
-      - name: Install gnatprove
-        run: alr with gnatprove
-
       - name: Run SPARK proof (Level 2)
-        run: alr exec -- gnatprove -P hmac_ada.gpr -j0 --level=2 --timeout=120
+        working-directory: tests
+        run: alr exec -- gnatprove -P ../hmac_ada.gpr -j0 --level=2 --timeout=120
 
       - name: Verify proof results
         shell: bash
         run: |
           # Parse the "Total" summary row. The last column is the
-          # Unproved count — "." means zero, a number means failures.
+          # Unproved count -- "." means zero, a number means failures.
           TOTAL_LINE=$(grep "^Total " obj/gnatprove/gnatprove.out)
           echo "$TOTAL_LINE"
           UNPROVED=$(echo "$TOTAL_LINE" | awk '{print $NF}')

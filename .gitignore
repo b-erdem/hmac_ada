@@ -2,3 +2,8 @@ obj/
 lib/
 alire/
 AGENTS.md
+
+# Test crate is a dev-only nested crate; its alire-generated config
+# tracks the active build profile and should not be versioned.
+tests/config/
+tests/alire.lock

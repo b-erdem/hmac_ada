@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-25
+
+### Changed
+- **Breaking**: `HMAC_SHA256.HMAC_Digest` is now a distinct array type
+  (derived from `System.Storage_Elements.Storage_Array (1 .. 32)`)
+  rather than a subtype of `SHA256.Digest`. The predefined `"="` is
+  overridden with a constant-time XOR-accumulation comparison, so
+  plain `Computed = Expected` is now safe against timing attacks
+  without remembering to call a special function. Callers that pass
+  an `HMAC_Digest` to APIs expecting a raw `Storage_Array` need an
+  explicit conversion: `Storage_Array (Tag)`.
+- `HMAC_SHA256.Equal` is preserved as a `renames "="` for callers
+  that prefer the explicit name.
+
+### Added
+- Nested `tests/` crate with its own `alire.toml` that depends on
+  the top-level crate via a local `path` pin (Alire's recommended
+  pattern for crate testing). `gnatprove` is now a dev dependency of
+  the test crate, never of the published crate. CI runs `alr build`
+  + tests + `gnatprove` from `tests/`.
+
+### Verified
+- 175/175 SPARK checks proved at Level 2 (one new postcondition
+  added on the constant-time `"="`), zero `pragma Assume`, zero
+  justified checks, zero warnings.
+
 ## [0.1.0] - 2026-04-16
 
 Initial public release.
@@ -46,5 +72,6 @@ Initial public release.
 - No `Unchecked_Conversion`, `Unchecked_Deallocation`, `pragma Suppress`,
   or `System.Address` usage in the core crypto packages.
 
-[Unreleased]: https://github.com/b-erdem/hmac_ada/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/b-erdem/hmac_ada/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/b-erdem/hmac_ada/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/b-erdem/hmac_ada/releases/tag/v0.1.0

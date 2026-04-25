@@ -79,10 +79,12 @@ package body HMAC_SHA256 is
    procedure Finalize (Ctx    : in out Context;
                        Digest : out HMAC_Digest) is
       Inner_Digest : SHA256.Digest;
+      Outer_Digest : SHA256.Digest;
    begin
       SHA256.Finalize (Ctx.Inner, Inner_Digest);
       SHA256.Update (Ctx.Outer, Inner_Digest);
-      SHA256.Finalize (Ctx.Outer, Digest);
+      SHA256.Finalize (Ctx.Outer, Outer_Digest);
+      Digest := HMAC_Digest (Outer_Digest);
       --  Scrub intermediate digest
       pragma Warnings (Off, "unused assignment");
       Inner_Digest := [others => 0];
@@ -106,8 +108,10 @@ package body HMAC_SHA256 is
    --  Constant-time comparison — accumulates XOR differences in Diff
    --  so every byte is always visited regardless of mismatch position.
    --  No_Inline prevents interprocedural optimization from converting the
-   --  accumulation into an early-exit branch.
-   function Equal (Left, Right : HMAC_Digest) return Boolean is
+   --  accumulation into an early-exit branch. This overrides the predefined
+   --  array equality, so the default `=` operator on HMAC_Digest is the
+   --  constant-time one. `Equal` renames `=` (see the spec).
+   function "=" (Left, Right : HMAC_Digest) return Boolean is
       Diff : System.Storage_Elements.Storage_Element := 0;
    begin
       for I in Left'Range loop
@@ -118,8 +122,8 @@ package body HMAC_SHA256 is
          Diff := Diff or (Left (I) xor Right (I));
       end loop;
       return Diff = 0;
-   end Equal;
+   end "=";
 
-   pragma No_Inline (Equal);
+   pragma No_Inline ("=");
 
 end HMAC_SHA256;
