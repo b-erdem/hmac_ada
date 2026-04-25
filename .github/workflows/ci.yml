@@ -24,6 +24,9 @@ jobs:
 
       - name: Install Alire
         uses: alire-project/setup-alire@v3
+        with:
+          version: 2.1.0
+          toolchain: gnat_native=15.2.1 gprbuild=25.0.1
 
       - name: Build library (top-level crate)
         run: alr build

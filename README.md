@@ -107,7 +107,7 @@ alr exec -- gnatprove -P ../hmac_ada.gpr -j0 --level=2 --timeout=120
 
 ## Security Considerations
 
-- **Constant-time comparison**: `Equal` uses XOR accumulation with `pragma No_Inline` to prevent timing side-channels. This provides practical constant-time behavior with GNAT/GCC but is not a formal constant-time guarantee (which requires hardware-level analysis).
+- **Constant-time comparison**: `HMAC_Digest` overrides `"="` with XOR accumulation and `pragma No_Inline`, so plain `Computed = Expected` is the constant-time comparison. `Equal` is preserved as an explicit alias. This provides practical constant-time behavior with GNAT/GCC but is not a formal constant-time guarantee (which requires hardware-level analysis).
 - **Key material scrubbing**: Sensitive locals are zeroed with `pragma Inspection_Point` (Ada RM H.3.2) to prevent dead-store elimination. For high-assurance environments, consider additionally using platform-specific secure wipe (e.g., `explicit_bzero`).
 - **Context lifecycle**: Preconditions (`Pre` aspects) prevent calling `Update` or `Finalize` on uninitialized contexts. After `Finalize`, contexts cannot be reused without re-initializing. **Note for non-SPARK consumers**: Ada preconditions are only checked at runtime when assertion checks are enabled. If you are not using SPARK proof to verify preconditions statically, compile with `-gnata` (or `pragma Assertion_Policy (Check)`) to enable runtime enforcement. Without this, misuse of the API (e.g., calling `Update` without `Initialize`) results in undefined behavior.
 
