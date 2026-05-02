@@ -5,7 +5,7 @@ pragma Style_Checks (Off);
 package Hmac_Ada_Config is
    pragma Pure;
 
-   Crate_Version : constant String := "0.1.0";
+   Crate_Version : constant String := "0.2.0";
    Crate_Name : constant String := "hmac_ada";
 
    Alire_Host_OS : constant String := "macos";
